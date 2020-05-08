@@ -1,25 +1,36 @@
-package fr.jorisfavier.venuesaroundme
+package fr.jorisfavier.venuesaroundme.ui.map
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import fr.jorisfavier.venuesaroundme.R
 
 class RestaurantsMapsActivity : AppCompatActivity() {
 
     companion object {
         const val FINE_LOCATION_PERMISSION_ID = 54
+        const val DEFAULT_ZOOM_LEVEL = 15f
     }
 
     private lateinit var map: GoogleMap
 
-    private val viewModel: RestaurantsMapsViewModel by viewModels()
+    private val viewModel: RestaurantsMapsViewModel by viewModels {
+        RestaurantsMapsViewModelFactory(
+            LocationServices.getFusedLocationProviderClient(this)
+        )
+    }
 
     private val isFineLocationGranted: Boolean
         get() =
@@ -56,17 +67,24 @@ class RestaurantsMapsActivity : AppCompatActivity() {
 
     private fun initObservers() {
         viewModel.state.observe(this, Observer { state ->
-            if (state == RestaurantsMapsViewModel.State.FineLocationNotGranted) {
-                requestFineLocationPermission()
-            } else {
-                initMap()
+            when (state) {
+                RestaurantsMapsViewModel.State.FineLocationNotGranted -> {
+                    requestFineLocationPermission()
+                }
+                is RestaurantsMapsViewModel.State.Ready -> {
+                    initMap(state.location)
+                }
+                is RestaurantsMapsViewModel.State.Error -> {
+                    displayError(state.throwable)
+                }
             }
         })
     }
 
     /**
-     * If the fine location has not been granted a native dialog will be prompt to the user
-     * asking for the permission
+     * If the fine location has not been granted,
+     * we will first display a warning message explaining why we want it,
+     * then a native dialog will be prompt to the user asking for the permission
      */
     private fun requestFineLocationPermission() {
         MaterialAlertDialogBuilder(this)
@@ -84,8 +102,40 @@ class RestaurantsMapsActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun initMap() {
-        map.isMyLocationEnabled = true
-        map.uiSettings.isMyLocationButtonEnabled = true
+    /**
+     * Displays the "my location" layer and the related control on the map
+     * and set the map's camera position to the current location of the device
+     *
+     * @param usersLocation the current location where to moved the camera to
+     */
+    private fun initMap(usersLocation: Location?) {
+        usersLocation?.let {
+            map.isMyLocationEnabled = true
+            map.uiSettings.isMyLocationButtonEnabled = true
+            map.moveCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        usersLocation.latitude,
+                        usersLocation.longitude
+                    ),
+                    DEFAULT_ZOOM_LEVEL
+                )
+            )
+        }
+    }
+
+    /**
+     * Displays a generic error alert dialog to the user
+     *
+     * @param throwable
+     */
+    private fun displayError(throwable: Throwable) {
+        Log.w(RestaurantsMapsActivity::class.java.simpleName, throwable)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.oups)
+            .setMessage(R.string.an_error_occurred)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 }
