@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">VenuesAroundMe</string>
     <string name="title_activity_maps">Venues Around me</string>
+    <string name="we_need_fine_location_permission">This app will use your location to find restaurants near you. Please accept the location permission when requested</string>
+    <string name="an_error_occurred">An error occurred</string>
+    <string name="oups">Oups!</string>
 </resources>
