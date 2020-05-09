@@ -3,5 +3,7 @@
     <string name="title_activity_maps">Venues Around me</string>
     <string name="we_need_fine_location_permission">This app will use your location to find restaurants near you. Please accept the location permission when requested</string>
     <string name="an_error_occurred">An error occurred</string>
+    <string name="location_error">Something went wrong while loading your location. Please check if you are online.</string>
+    <string name="search_venues_error">Something went wrong while searching for restaurants around you. Please check if you are online.</string>
     <string name="oups">Oups!</string>
 </resources>

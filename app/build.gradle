@@ -2,6 +2,15 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+if (!file("local.gradle").exists()) {
+    exec {
+        commandLine "sh"
+        args = ["-c", "cp local.gradle.example local.gradle"]
+    }
+}
+
+apply from: "local.gradle"
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
@@ -14,6 +23,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "FOURSQUARE_BASE_URL", "\"https://api.foursquare.com/v2/\""
     }
     compileOptions {
         sourceCompatibility = 1.8
@@ -42,6 +53,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.2.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     testImplementation 'junit:junit:4.12'
+    testImplementation "androidx.arch.core:core-testing:2.1.0"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
@@ -54,10 +66,20 @@ dependencies {
     //Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutine_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_coroutine_version"
 
     //Material
     implementation 'com.google.android.material:material:1.1.0'
 
     //Location data
     implementation 'com.google.android.gms:play-services-location:17.0.0'
+
+    //Retrofit
+    implementation "com.squareup.retrofit2:retrofit:2.7.1"
+    testImplementation "com.squareup.retrofit2:retrofit-mock:2.7.1"
+    implementation "com.squareup.retrofit2:converter-moshi:2.7.1"
+
+    //Mockito
+    testImplementation 'org.mockito:mockito-core:2.28.2'
+    testImplementation 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0'
 }

@@ -1,44 +1,65 @@
 package fr.jorisfavier.venuesaroundme.ui.map
 
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
+import fr.jorisfavier.venuesaroundme.api.model.Venue
 import fr.jorisfavier.venuesaroundme.data.ILocationRepository
+import fr.jorisfavier.venuesaroundme.data.IVenueRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 
-class RestaurantsMapsViewModel(private val locationRepository: ILocationRepository) : ViewModel() {
+class RestaurantsMapsViewModel(
+    private val locationRepository: ILocationRepository,
+    private val venueRepository: IVenueRepository
+) : ViewModel() {
 
     sealed class State {
         object FineLocationNotGranted : State()
-        class Ready(val location: Location?) : State()
-        class Error(val throwable: Throwable) : State()
+        class Ready(val location: Location) : State()
+        object LocationError : State()
+        object SearchError : State()
     }
 
     private val _state = MutableLiveData<State>()
     val state: LiveData<State> = _state
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        _state.value =
-            State.Error(
-                throwable
-            )
+    private val _restaurants = MutableLiveData<List<Venue>>()
+    val restaurants: LiveData<List<Venue>> = _restaurants
+
+    private val locationExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.w(this::class.java.simpleName, throwable)
+        _state.value = State.LocationError
+    }
+
+    private val searchExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.w(this::class.java.simpleName, throwable)
+        _state.value = State.SearchError
     }
 
 
     fun setFineLocationGranted(granted: Boolean) {
         if (!granted) {
-            _state.value =
-                State.FineLocationNotGranted
+            _state.value = State.FineLocationNotGranted
         } else {
-            viewModelScope.launch(exceptionHandler) {
-                _state.value =
-                    State.Ready(
-                        locationRepository.getCurrentUserLocation()
-                    )
+            viewModelScope.launch(locationExceptionHandler) {
+                val currentLocation = locationRepository.getCurrentUserLocation()
+                currentLocation?.let {
+                    _state.value = State.Ready(it)
+                } ?: run {
+                    _state.value = State.LocationError
+                }
             }
+        }
+    }
+
+    fun searchNearByRestaurants(location: LatLng, radius: Double) {
+        viewModelScope.launch(searchExceptionHandler) {
+            _restaurants.value = venueRepository.getRestaurantsAroundLocation(location, radius)
         }
     }
 
