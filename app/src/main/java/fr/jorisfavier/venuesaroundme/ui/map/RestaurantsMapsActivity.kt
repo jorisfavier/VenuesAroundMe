@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -14,8 +13,10 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import fr.jorisfavier.venuesaroundme.R
+import fr.jorisfavier.venuesaroundme.util.getRadius
 
 class RestaurantsMapsActivity : AppCompatActivity() {
 
@@ -68,15 +69,21 @@ class RestaurantsMapsActivity : AppCompatActivity() {
     private fun initObservers() {
         viewModel.state.observe(this, Observer { state ->
             when (state) {
-                RestaurantsMapsViewModel.State.FineLocationNotGranted -> {
-                    requestFineLocationPermission()
-                }
-                is RestaurantsMapsViewModel.State.Ready -> {
-                    initMap(state.location)
-                }
-                is RestaurantsMapsViewModel.State.Error -> {
-                    displayError(state.throwable)
-                }
+                RestaurantsMapsViewModel.State.FineLocationNotGranted -> requestFineLocationPermission()
+                is RestaurantsMapsViewModel.State.Ready -> initMap(state.location)
+                RestaurantsMapsViewModel.State.LocationError -> displayLocationError()
+                RestaurantsMapsViewModel.State.SearchError -> displayVenueSearchError()
+            }
+        })
+
+        viewModel.restaurants.observe(this, Observer { venues ->
+            venues.forEach { venue ->
+                map.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(venue.location.lat, venue.location.lng))
+                        .title(venue.name)
+                        .snippet(venue.categories.joinToString(" - ") { it.name })
+                )
             }
         })
     }
@@ -104,37 +111,45 @@ class RestaurantsMapsActivity : AppCompatActivity() {
 
     /**
      * Displays the "my location" layer and the related control on the map
-     * and set the map's camera position to the current location of the device
+     * Sets the map's camera position to the current location of the device
+     * Adds a listener to the map in order to load restaurants when the user pans the map.
      *
      * @param usersLocation the current location where to moved the camera to
      */
-    private fun initMap(usersLocation: Location?) {
-        usersLocation?.let {
-            map.isMyLocationEnabled = true
-            map.uiSettings.isMyLocationButtonEnabled = true
-            map.moveCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                    LatLng(
-                        usersLocation.latitude,
-                        usersLocation.longitude
-                    ),
-                    DEFAULT_ZOOM_LEVEL
-                )
+    private fun initMap(usersLocation: Location) {
+        map.isMyLocationEnabled = true
+        map.uiSettings.isMyLocationButtonEnabled = true
+        map.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                LatLng(usersLocation.latitude, usersLocation.longitude),
+                DEFAULT_ZOOM_LEVEL
             )
+        )
+        map.setOnCameraIdleListener {
+            viewModel.searchNearByRestaurants(map.cameraPosition.target, map.getRadius())
         }
     }
 
     /**
-     * Displays a generic error alert dialog to the user
+     * Displays a location error alert dialog to the user
      *
-     * @param throwable
      */
-    private fun displayError(throwable: Throwable) {
-        Log.w(RestaurantsMapsActivity::class.java.simpleName, throwable)
-
+    private fun displayLocationError() {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.oups)
-            .setMessage(R.string.an_error_occurred)
+            .setMessage(R.string.location_error)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
+    /**
+     * Displays a search error alert dialog to the user
+     *
+     */
+    private fun displayVenueSearchError() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.oups)
+            .setMessage(R.string.search_venues_error)
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }

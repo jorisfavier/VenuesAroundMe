@@ -2,6 +2,15 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+if (!file("local.gradle").exists()) {
+    exec {
+        commandLine "sh"
+        args = ["-c", "cp local.gradle.example local.gradle"]
+    }
+}
+
+apply from: "local.gradle"
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
@@ -14,6 +23,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "FOURSQUARE_BASE_URL", "\"https://api.foursquare.com/v2/\""
     }
     compileOptions {
         sourceCompatibility = 1.8
@@ -60,4 +71,9 @@ dependencies {
 
     //Location data
     implementation 'com.google.android.gms:play-services-location:17.0.0'
+
+    //Retrofit
+    implementation "com.squareup.retrofit2:retrofit:2.7.1"
+    testImplementation "com.squareup.retrofit2:retrofit-mock:2.7.1"
+    implementation "com.squareup.retrofit2:converter-moshi:2.7.1"
 }
