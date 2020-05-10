@@ -10,7 +10,7 @@ import com.nhaarman.mockitokotlin2.mock
 import fr.jorisfavier.venuesaroundme.api.model.Venue
 import fr.jorisfavier.venuesaroundme.repository.ILocationRepository
 import fr.jorisfavier.venuesaroundme.repository.IVenueRepository
-import fr.jorisfavier.venuesaroundme.ui.map.RestaurantsMapsViewModel
+import fr.jorisfavier.venuesaroundme.ui.map.MapsViewModel
 import fr.jorisfavier.venuesaroundme.util.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -19,7 +19,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class RestaurantsMapsViewModelTest {
+class MapsViewModelTest {
     // Executes each task synchronously using Architecture Components.
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
@@ -58,13 +58,13 @@ class RestaurantsMapsViewModelTest {
     @Test
     fun `not granting fine location should emit FineLocationNotGranted state`() {
         //given
-        val viewModel = RestaurantsMapsViewModel(mock(), mock())
+        val viewModel = MapsViewModel(mock(), mock())
 
         //when
         viewModel.setFineLocationGranted(false)
 
         //then
-        assert(viewModel.state.getOrAwaitValue() == RestaurantsMapsViewModel.State.FineLocationNotGranted)
+        assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.FineLocationNotGranted)
     }
 
     @Test
@@ -75,13 +75,13 @@ class RestaurantsMapsViewModelTest {
                 doAnswer { throw Exception() }.`when`(mock).getCurrentUserLocation()
             }
 
-            val viewModel = RestaurantsMapsViewModel(locationRepo, mock())
+            val viewModel = MapsViewModel(locationRepo, mock())
 
             //when
             viewModel.setFineLocationGranted(true)
 
             //then
-            assert(viewModel.state.getOrAwaitValue() == RestaurantsMapsViewModel.State.LocationError)
+            assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.LocationError)
         }
 
     @Test
@@ -92,13 +92,13 @@ class RestaurantsMapsViewModelTest {
             onBlocking { getCurrentUserLocation() } doReturn null
         }
 
-        val viewModel = RestaurantsMapsViewModel(locationRepo, mock())
+        val viewModel = MapsViewModel(locationRepo, mock())
 
         //when
         viewModel.setFineLocationGranted(true)
 
         //then
-        assert(viewModel.state.getOrAwaitValue() == RestaurantsMapsViewModel.State.LocationError)
+        assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.LocationError)
     }
 
     @Test
@@ -108,14 +108,14 @@ class RestaurantsMapsViewModelTest {
             onBlocking { getCurrentUserLocation() } doReturn fakeLocation
         }
 
-        val viewModel = RestaurantsMapsViewModel(locationRepo, mock())
+        val viewModel = MapsViewModel(locationRepo, mock())
 
         //when
         viewModel.setFineLocationGranted(true)
 
         //then
         val state = viewModel.state.getOrAwaitValue()
-        assert(state is RestaurantsMapsViewModel.State.Ready && state.location == fakeLocation)
+        assert(state is MapsViewModel.State.Ready && state.location == fakeLocation)
 
     }
 
@@ -126,7 +126,7 @@ class RestaurantsMapsViewModelTest {
             onBlocking { getRestaurantsAroundLocation(any(), any()) } doReturn fakeVenueFlow
         }
 
-        val viewModel = RestaurantsMapsViewModel(mock(), venueRepo)
+        val viewModel = MapsViewModel(mock(), venueRepo)
 
         //when
         viewModel.searchNearByRestaurants(LatLng(0.0, 0.0), 10.0)
@@ -144,12 +144,12 @@ class RestaurantsMapsViewModelTest {
                     .getRestaurantsAroundLocation(any(), any())
             }
 
-            val viewModel = RestaurantsMapsViewModel(mock(), venueRepo)
+            val viewModel = MapsViewModel(mock(), venueRepo)
 
             //when
             viewModel.searchNearByRestaurants(LatLng(0.0, 0.0), 10.0)
 
             //then
-            assert(viewModel.state.getOrAwaitValue() == RestaurantsMapsViewModel.State.SearchError)
+            assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.SearchError)
         }
 }

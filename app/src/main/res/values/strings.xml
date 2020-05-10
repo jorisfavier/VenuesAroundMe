@@ -6,4 +6,7 @@
     <string name="location_error">Something went wrong while loading your location. Please check if you are online.</string>
     <string name="search_venues_error">Something went wrong while searching for restaurants around you. Please check if you are online.</string>
     <string name="oups">Oups!</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

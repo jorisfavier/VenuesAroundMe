@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class RestaurantsMapsViewModel(
+class MapsViewModel(
     private val locationRepository: ILocationRepository,
     private val venueRepository: IVenueRepository
 ) : ViewModel() {

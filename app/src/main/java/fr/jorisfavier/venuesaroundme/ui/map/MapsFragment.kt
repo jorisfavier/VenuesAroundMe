@@ -4,9 +4,13 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -16,9 +20,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import fr.jorisfavier.venuesaroundme.R
+import fr.jorisfavier.venuesaroundme.ui.MainActivityViewModel
 import fr.jorisfavier.venuesaroundme.util.getRadius
 
-class RestaurantsMapsActivity : AppCompatActivity() {
+class MapsFragment : Fragment() {
 
     companion object {
         const val FINE_LOCATION_PERMISSION_ID = 54
@@ -27,56 +32,53 @@ class RestaurantsMapsActivity : AppCompatActivity() {
 
     private lateinit var map: GoogleMap
 
-    private val viewModel: RestaurantsMapsViewModel by viewModels {
-        RestaurantsMapsViewModelFactory(
-            LocationServices.getFusedLocationProviderClient(this)
+    private val viewModel: MapsViewModel by viewModels {
+        MapsViewModelFactory(
+            LocationServices.getFusedLocationProviderClient(requireActivity())
         )
     }
+
+    private val sharedViewModel: MainActivityViewModel by activityViewModels()
 
     private val isFineLocationGranted: Boolean
         get() =
             ActivityCompat.checkSelfPermission(
-                this,
+                requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_maps)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_maps, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
+        val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync { map = it }
         initObservers()
-    }
-
-    override fun onStart() {
-        super.onStart()
         viewModel.setFineLocationGranted(isFineLocationGranted)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        viewModel.setFineLocationGranted(
-            requestCode == FINE_LOCATION_PERMISSION_ID && grantResults.isNotEmpty()
-                    && grantResults.first() == PackageManager.PERMISSION_GRANTED
-        )
-    }
-
     private fun initObservers() {
-        viewModel.state.observe(this, Observer { state ->
+        sharedViewModel.fineLocationGranted.observe(viewLifecycleOwner, Observer { granted ->
+            viewModel.setFineLocationGranted(granted)
+        })
+
+        viewModel.state.observe(viewLifecycleOwner, Observer { state ->
             when (state) {
-                RestaurantsMapsViewModel.State.FineLocationNotGranted -> requestFineLocationPermission()
-                is RestaurantsMapsViewModel.State.Ready -> initMap(state.location)
-                RestaurantsMapsViewModel.State.LocationError -> displayLocationError()
-                RestaurantsMapsViewModel.State.SearchError -> displayVenueSearchError()
+                MapsViewModel.State.FineLocationNotGranted -> requestFineLocationPermission()
+                is MapsViewModel.State.Ready -> initMap(state.location)
+                MapsViewModel.State.LocationError -> displayLocationError()
+                MapsViewModel.State.SearchError -> displayVenueSearchError()
             }
         })
 
-        viewModel.restaurants.observe(this, Observer { venues ->
+        viewModel.restaurants.observe(viewLifecycleOwner, Observer { venues ->
             venues.forEach { venue ->
                 map.addMarker(
                     MarkerOptions()
@@ -94,13 +96,13 @@ class RestaurantsMapsActivity : AppCompatActivity() {
      * then a native dialog will be prompt to the user asking for the permission
      */
     private fun requestFineLocationPermission() {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setMessage(R.string.we_need_fine_location_permission)
-            .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> requireActivity().finish() }
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 if (!isFineLocationGranted) {
                     ActivityCompat.requestPermissions(
-                        this,
+                        requireActivity(),
                         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                         FINE_LOCATION_PERMISSION_ID
                     )
@@ -136,7 +138,7 @@ class RestaurantsMapsActivity : AppCompatActivity() {
      *
      */
     private fun displayLocationError() {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.oups)
             .setMessage(R.string.location_error)
             .setPositiveButton(android.R.string.ok, null)
@@ -148,7 +150,7 @@ class RestaurantsMapsActivity : AppCompatActivity() {
      *
      */
     private fun displayVenueSearchError() {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.oups)
             .setMessage(R.string.search_venues_error)
             .setPositiveButton(android.R.string.ok, null)
