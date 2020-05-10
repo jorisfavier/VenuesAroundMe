@@ -21,6 +21,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import fr.jorisfavier.venuesaroundme.R
 import fr.jorisfavier.venuesaroundme.ui.MainActivityViewModel
+import fr.jorisfavier.venuesaroundme.util.findNavController
 import fr.jorisfavier.venuesaroundme.util.getRadius
 
 class MapsFragment : Fragment() {
@@ -37,6 +38,8 @@ class MapsFragment : Fragment() {
             LocationServices.getFusedLocationProviderClient(requireActivity())
         )
     }
+
+    private var shouldReloadVenues = true
 
     private val sharedViewModel: MainActivityViewModel by activityViewModels()
 
@@ -59,9 +62,14 @@ class MapsFragment : Fragment() {
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync { map = it }
-        initObservers()
-        viewModel.setFineLocationGranted(isFineLocationGranted)
+        mapFragment.getMapAsync {
+            map = it
+            initObservers()
+            viewModel.setFineLocationGranted(isFineLocationGranted)
+            if (savedInstanceState != null) {
+                initMap()
+            }
+        }
     }
 
     private fun initObservers() {
@@ -69,23 +77,26 @@ class MapsFragment : Fragment() {
             viewModel.setFineLocationGranted(granted)
         })
 
-        viewModel.state.observe(viewLifecycleOwner, Observer { state ->
-            when (state) {
-                MapsViewModel.State.FineLocationNotGranted -> requestFineLocationPermission()
-                is MapsViewModel.State.Ready -> initMap(state.location)
-                MapsViewModel.State.LocationError -> displayLocationError()
-                MapsViewModel.State.SearchError -> displayVenueSearchError()
+        viewModel.state.observe(viewLifecycleOwner, Observer { stateEvent ->
+            stateEvent.getContentIfNotHandled()?.let { state ->
+                when (state) {
+                    MapsViewModel.State.FineLocationNotGranted -> requestFineLocationPermission()
+                    is MapsViewModel.State.Ready -> initMap(state.location)
+                    MapsViewModel.State.LocationError -> displayLocationError()
+                    MapsViewModel.State.SearchError -> displayVenueSearchError()
+                }
             }
         })
 
         viewModel.restaurants.observe(viewLifecycleOwner, Observer { venues ->
             venues.forEach { venue ->
-                map.addMarker(
+                val marker = map.addMarker(
                     MarkerOptions()
                         .position(LatLng(venue.location.lat, venue.location.lng))
                         .title(venue.name)
                         .snippet(venue.categories.joinToString(" - ") { it.name })
                 )
+                marker.tag = venue.id
             }
         })
     }
@@ -113,23 +124,41 @@ class MapsFragment : Fragment() {
 
     /**
      * Displays the "my location" layer and the related control on the map
-     * Sets the map's camera position to the current location of the device
+     * Sets the map's camera position to the given location
      * Adds a listener to the map in order to load restaurants when the user pans the map.
+     * Sets a click listener on the infoWindow in order to open the venue detail
      *
-     * @param usersLocation the current location where to moved the camera to
+     * @param usersLocation the current location where to moved the camera to, if none is provided
+     * the camera will not be moved
      */
-    private fun initMap(usersLocation: Location) {
+    private fun initMap(usersLocation: Location? = null) {
         map.isMyLocationEnabled = true
         map.uiSettings.isMyLocationButtonEnabled = true
-        map.moveCamera(
-            CameraUpdateFactory.newLatLngZoom(
-                LatLng(usersLocation.latitude, usersLocation.longitude),
-                DEFAULT_ZOOM_LEVEL
+        usersLocation?.let {
+            map.moveCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(it.latitude, it.longitude),
+                    DEFAULT_ZOOM_LEVEL
+                )
             )
-        )
+        }
         map.setOnCameraIdleListener {
-            map.clear()
-            viewModel.searchNearByRestaurants(map.cameraPosition.target, map.getRadius())
+            if (shouldReloadVenues) {
+                map.clear()
+                viewModel.searchNearByRestaurants(map.cameraPosition.target, map.getRadius())
+            }
+            shouldReloadVenues = true
+        }
+        map.setOnInfoWindowClickListener {
+            val action =
+                MapsFragmentDirections.actionMapsFragmentToVenueDetailFragment(it.tag.toString())
+            findNavController().navigate(action)
+        }
+        //When clicking on a marker the camera will move and idle
+        //here we are preventing a reload of the venues around the marker
+        map.setOnMarkerClickListener {
+            shouldReloadVenues = false
+            false
         }
     }
 

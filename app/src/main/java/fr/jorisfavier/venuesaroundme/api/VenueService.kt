@@ -2,12 +2,15 @@ package fr.jorisfavier.venuesaroundme.api
 
 import fr.jorisfavier.venuesaroundme.BuildConfig
 import fr.jorisfavier.venuesaroundme.api.model.ResponseWrapper
+import fr.jorisfavier.venuesaroundme.api.model.VenueDetail
+import fr.jorisfavier.venuesaroundme.api.model.VenueDetailResult
 import fr.jorisfavier.venuesaroundme.api.model.VenuesSearchResult
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 import java.text.SimpleDateFormat
 import java.util.*
@@ -19,6 +22,9 @@ interface VenueService {
         @Query("radius") radius: Int,
         @Query("categoryId") categoryId: String
     ): ResponseWrapper<VenuesSearchResult>
+
+    @GET("venues/{id}")
+    suspend fun getVenueDetail(@Path("id") id: String): ResponseWrapper<VenueDetailResult>
 
     companion object {
         private const val baseUrl = BuildConfig.FOURSQUARE_BASE_URL

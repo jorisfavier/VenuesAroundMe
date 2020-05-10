@@ -3,10 +3,13 @@ package fr.jorisfavier.venuesaroundme.repository.impl
 import com.google.android.gms.maps.model.LatLng
 import fr.jorisfavier.venuesaroundme.api.VenueService
 import fr.jorisfavier.venuesaroundme.api.model.Venue
+import fr.jorisfavier.venuesaroundme.api.model.VenueDetail
 import fr.jorisfavier.venuesaroundme.cache.IVenueDataSource
 import fr.jorisfavier.venuesaroundme.repository.IVenueRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 
 class VenueRepository(
     private val venueService: VenueService,
@@ -32,6 +35,16 @@ class VenueRepository(
             emit(responseWrapper.response.venues)
             //We insert the venues found from the api to the cache
             venueDataSource.addVenues(responseWrapper.response.venues)
+        }
+    }
+
+    override suspend fun getVenueDetail(id: String): VenueDetail {
+        return withContext(Dispatchers.IO) {
+            val responseWrapper = venueService.getVenueDetail(id)
+            check(responseWrapper.meta.code == 200) {
+                "The api should return an HTTP 200 code"
+            }
+            responseWrapper.response.venue
         }
     }
 
