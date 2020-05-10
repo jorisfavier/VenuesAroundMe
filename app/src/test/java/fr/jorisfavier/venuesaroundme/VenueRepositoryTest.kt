@@ -8,7 +8,7 @@ import fr.jorisfavier.venuesaroundme.api.VenueService
 import fr.jorisfavier.venuesaroundme.api.model.Meta
 import fr.jorisfavier.venuesaroundme.api.model.ResponseWrapper
 import fr.jorisfavier.venuesaroundme.api.model.VenuesSearchResult
-import fr.jorisfavier.venuesaroundme.data.impl.VenueRepository
+import fr.jorisfavier.venuesaroundme.repository.impl.VenueRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test

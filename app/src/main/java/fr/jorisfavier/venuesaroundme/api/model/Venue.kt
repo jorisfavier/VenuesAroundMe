@@ -6,4 +6,12 @@ data class Venue(
     val location: Location,
     val name: String,
     val popularityByGeo: Double
-)
+) {
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return this.hashCode() == other.hashCode()
+    }
+}

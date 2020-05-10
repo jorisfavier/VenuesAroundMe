@@ -8,8 +8,8 @@ import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import fr.jorisfavier.venuesaroundme.api.model.Venue
-import fr.jorisfavier.venuesaroundme.data.ILocationRepository
-import fr.jorisfavier.venuesaroundme.data.IVenueRepository
+import fr.jorisfavier.venuesaroundme.repository.ILocationRepository
+import fr.jorisfavier.venuesaroundme.repository.IVenueRepository
 import fr.jorisfavier.venuesaroundme.ui.map.RestaurantsMapsViewModel
 import fr.jorisfavier.venuesaroundme.util.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi

@@ -1,4 +1,4 @@
-package fr.jorisfavier.venuesaroundme.data
+package fr.jorisfavier.venuesaroundme.repository
 
 import android.location.Location
 

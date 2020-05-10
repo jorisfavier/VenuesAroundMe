@@ -12,4 +12,10 @@ data class Location(
     val lng: Double,
     val postalCode: String,
     val state: String
-)
+) {
+    fun distanceTo(destLat: Double, destLng: Double): Double {
+        val result = FloatArray(1)
+        android.location.Location.distanceBetween(lat, lng, destLat, destLng, result)
+        return result[0].toDouble()
+    }
+}

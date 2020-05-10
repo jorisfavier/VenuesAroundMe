@@ -8,9 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import fr.jorisfavier.venuesaroundme.api.model.Venue
-import fr.jorisfavier.venuesaroundme.data.ILocationRepository
-import fr.jorisfavier.venuesaroundme.data.IVenueRepository
+import fr.jorisfavier.venuesaroundme.repository.ILocationRepository
+import fr.jorisfavier.venuesaroundme.repository.IVenueRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class RestaurantsMapsViewModel(
@@ -59,7 +60,9 @@ class RestaurantsMapsViewModel(
 
     fun searchNearByRestaurants(location: LatLng, radius: Double) {
         viewModelScope.launch(searchExceptionHandler) {
-            _restaurants.value = venueRepository.getRestaurantsAroundLocation(location, radius)
+            venueRepository.getRestaurantsAroundLocation(location, radius).collect {
+                _restaurants.value = it
+            }
         }
     }
 
