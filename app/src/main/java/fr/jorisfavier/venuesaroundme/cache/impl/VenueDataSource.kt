@@ -1,5 +1,6 @@
 package fr.jorisfavier.venuesaroundme.cache.impl
 
+import androidx.annotation.VisibleForTesting
 import com.google.android.gms.maps.model.LatLng
 import fr.jorisfavier.venuesaroundme.api.model.Venue
 import fr.jorisfavier.venuesaroundme.cache.IVenueDataSource
@@ -15,7 +16,8 @@ class VenueDataSource(private val maxCacheSize: Int = DEFAULT_MAX_CACHE_SIZE) : 
     //We use a Set in order to avoid duplicated elements
     //We use a LinkedHashSet in order to keep the elements ordered following the insertion order
     // because at some point we will remove the oldest ones.
-    private var cache = LinkedHashSet<Venue>()
+    @VisibleForTesting
+    val cache = LinkedHashSet<Venue>()
 
     override suspend fun searchVenues(location: LatLng, radius: Int): List<Venue> {
         return withContext(Dispatchers.Default) {
