@@ -126,6 +126,7 @@ class RestaurantsMapsActivity : AppCompatActivity() {
             )
         )
         map.setOnCameraIdleListener {
+            map.clear()
             viewModel.searchNearByRestaurants(map.cameraPosition.target, map.getRadius())
         }
     }

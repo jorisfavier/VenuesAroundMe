@@ -8,11 +8,12 @@ import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import fr.jorisfavier.venuesaroundme.api.model.Venue
-import fr.jorisfavier.venuesaroundme.data.ILocationRepository
-import fr.jorisfavier.venuesaroundme.data.IVenueRepository
+import fr.jorisfavier.venuesaroundme.repository.ILocationRepository
+import fr.jorisfavier.venuesaroundme.repository.IVenueRepository
 import fr.jorisfavier.venuesaroundme.ui.map.RestaurantsMapsViewModel
 import fr.jorisfavier.venuesaroundme.util.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Rule
 import org.junit.Test
@@ -51,6 +52,8 @@ class RestaurantsMapsViewModelTest {
         Venue(listOf(), "1", fakeLocationDTO, "test", 0.0),
         Venue(listOf(), "2", fakeLocationDTO, "test 2", 0.0)
     )
+
+    private val fakeVenueFlow = flowOf(fakeVenueList)
 
     @Test
     fun `not granting fine location should emit FineLocationNotGranted state`() {
@@ -120,7 +123,7 @@ class RestaurantsMapsViewModelTest {
     fun `searchNearByRestaurants should emit restaurants`() {
         //given
         val venueRepo = mock<IVenueRepository> {
-            onBlocking { getRestaurantsAroundLocation(any(), any()) } doReturn fakeVenueList
+            onBlocking { getRestaurantsAroundLocation(any(), any()) } doReturn fakeVenueFlow
         }
 
         val viewModel = RestaurantsMapsViewModel(mock(), venueRepo)

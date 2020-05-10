@@ -1,8 +1,8 @@
-package fr.jorisfavier.venuesaroundme.data.impl
+package fr.jorisfavier.venuesaroundme.repository.impl
 
 import android.location.Location
 import com.google.android.gms.location.FusedLocationProviderClient
-import fr.jorisfavier.venuesaroundme.data.ILocationRepository
+import fr.jorisfavier.venuesaroundme.repository.ILocationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
