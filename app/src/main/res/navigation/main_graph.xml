@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/mapsFragment">
+
+    <fragment
+        android:id="@+id/mapsFragment"
+        android:name="fr.jorisfavier.venuesaroundme.ui.map.MapsFragment"
+        android:label="MapsFragment" >
+        <action
+            android:id="@+id/action_mapsFragment_to_venueDetailFragment"
+            app:destination="@id/venueDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/venueDetailFragment"
+        android:name="fr.jorisfavier.venuesaroundme.ui.detail.VenueDetailFragment"
+        android:label="venue_detail_fragment"
+        tools:layout="@layout/venue_detail_fragment" >
+        <argument
+            android:name="venueId"
+            app:argType="string" />
+    </fragment>
+</navigation>

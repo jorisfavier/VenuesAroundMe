@@ -2,6 +2,7 @@ package fr.jorisfavier.venuesaroundme.repository
 
 import com.google.android.gms.maps.model.LatLng
 import fr.jorisfavier.venuesaroundme.api.model.Venue
+import fr.jorisfavier.venuesaroundme.api.model.VenueDetail
 import kotlinx.coroutines.flow.Flow
 
 interface IVenueRepository {
@@ -16,4 +17,12 @@ interface IVenueRepository {
      * @return a flow of list of venues
      */
     suspend fun getRestaurantsAroundLocation(location: LatLng, radius: Double): Flow<List<Venue>>
+
+    /**
+     * Returns the detailed information about a given venue
+     *
+     * @param id the venue identifier
+     * @return
+     */
+    suspend fun getVenueDetail(id: String): VenueDetail
 }
