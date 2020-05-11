@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import fr.jorisfavier.venuesaroundme.api.model.Venue
+import fr.jorisfavier.venuesaroundme.data.fakeLocation
 import fr.jorisfavier.venuesaroundme.repository.ILocationRepository
 import fr.jorisfavier.venuesaroundme.repository.IVenueRepository
 import fr.jorisfavier.venuesaroundme.ui.map.MapsViewModel
@@ -28,33 +29,6 @@ class MapsViewModelTest {
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
 
-
-    private val fakeLocation = mock<Location>() {
-        on { latitude } doReturn 1.0
-        on { longitude } doReturn 1.0
-    }
-
-    private val fakeLocationDTO = fr.jorisfavier.venuesaroundme.api.model.Location(
-        "",
-        "",
-        "",
-        "",
-        "",
-        0,
-        listOf(),
-        0.0,
-        0.0,
-        "",
-        ""
-    )
-
-    private val fakeVenueList = listOf(
-        Venue(listOf(), "1", fakeLocationDTO, "test", 0.0),
-        Venue(listOf(), "2", fakeLocationDTO, "test 2", 0.0)
-    )
-
-    private val fakeVenueFlow = flowOf(fakeVenueList)
-
     @Test
     fun `not granting fine location should emit FineLocationNotGranted state`() {
         //given
@@ -64,7 +38,10 @@ class MapsViewModelTest {
         viewModel.setFineLocationGranted(false)
 
         //then
-        assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.FineLocationNotGranted)
+        assert(
+            viewModel.state.getOrAwaitValue()
+                .peekContent() == MapsViewModel.State.FineLocationNotGranted
+        )
     }
 
     @Test
@@ -81,7 +58,9 @@ class MapsViewModelTest {
             viewModel.setFineLocationGranted(true)
 
             //then
-            assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.LocationError)
+            assert(
+                viewModel.state.getOrAwaitValue().peekContent() == MapsViewModel.State.LocationError
+            )
         }
 
     @Test
@@ -98,12 +77,17 @@ class MapsViewModelTest {
         viewModel.setFineLocationGranted(true)
 
         //then
-        assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.LocationError)
+        assert(viewModel.state.getOrAwaitValue().peekContent() == MapsViewModel.State.LocationError)
     }
 
     @Test
     fun `granting fine location should emit Ready state`() {
         //given
+        val fakeLocation = mock<Location> {
+            on { latitude } doReturn 1.0
+            on { longitude } doReturn 1.0
+        }
+
         val locationRepo = mock<ILocationRepository> {
             onBlocking { getCurrentUserLocation() } doReturn fakeLocation
         }
@@ -114,7 +98,7 @@ class MapsViewModelTest {
         viewModel.setFineLocationGranted(true)
 
         //then
-        val state = viewModel.state.getOrAwaitValue()
+        val state = viewModel.state.getOrAwaitValue().peekContent()
         assert(state is MapsViewModel.State.Ready && state.location == fakeLocation)
 
     }
@@ -122,6 +106,12 @@ class MapsViewModelTest {
     @Test
     fun `searchNearByRestaurants should emit restaurants`() {
         //given
+        val fakeVenueList = listOf(
+            Venue(listOf(), "1", fakeLocation, "test", 0.0),
+            Venue(listOf(), "2", fakeLocation, "test 2", 0.0)
+        )
+
+        val fakeVenueFlow = flowOf(fakeVenueList)
         val venueRepo = mock<IVenueRepository> {
             onBlocking { getRestaurantsAroundLocation(any(), any()) } doReturn fakeVenueFlow
         }
@@ -150,6 +140,8 @@ class MapsViewModelTest {
             viewModel.searchNearByRestaurants(LatLng(0.0, 0.0), 10.0)
 
             //then
-            assert(viewModel.state.getOrAwaitValue() == MapsViewModel.State.SearchError)
+            assert(
+                viewModel.state.getOrAwaitValue().peekContent() == MapsViewModel.State.SearchError
+            )
         }
 }

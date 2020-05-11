@@ -35,8 +35,8 @@ class VenueDetailViewModel(private val venueRepository: IVenueRepository) : View
      * @param id the venue identifier
      */
     fun loadDetail(id: String) {
+        _state.value = Event(State.Loading)
         viewModelScope.launch(exceptionHandler) {
-            _state.value = Event(State.Loading)
             _venue.value = venueRepository.getVenueDetail(id)
             _state.value = Event(State.Loaded)
         }
