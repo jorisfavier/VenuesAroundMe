@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
@@ -23,6 +22,7 @@ import fr.jorisfavier.venuesaroundme.R
 import fr.jorisfavier.venuesaroundme.ui.MainActivityViewModel
 import fr.jorisfavier.venuesaroundme.util.findNavController
 import fr.jorisfavier.venuesaroundme.util.getRadius
+import fr.jorisfavier.venuesaroundme.util.getServiceLocator
 
 class MapsFragment : Fragment() {
 
@@ -35,7 +35,8 @@ class MapsFragment : Fragment() {
 
     private val viewModel: MapsViewModel by viewModels {
         MapsViewModelFactory(
-            LocationServices.getFusedLocationProviderClient(requireActivity())
+            getServiceLocator().locationRepository,
+            getServiceLocator().venueRepository
         )
     }
 

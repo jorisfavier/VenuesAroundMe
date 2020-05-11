@@ -2,21 +2,16 @@ package fr.jorisfavier.venuesaroundme.ui.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.location.FusedLocationProviderClient
-import fr.jorisfavier.venuesaroundme.api.VenueService
-import fr.jorisfavier.venuesaroundme.cache.impl.VenueDataSource
-import fr.jorisfavier.venuesaroundme.repository.impl.LocationRepository
-import fr.jorisfavier.venuesaroundme.repository.impl.VenueRepository
+import fr.jorisfavier.venuesaroundme.repository.ILocationRepository
+import fr.jorisfavier.venuesaroundme.repository.IVenueRepository
 
 class MapsViewModelFactory(
-    private val fusedLocationProviderClient: FusedLocationProviderClient
+    private val locationRepository: ILocationRepository,
+    private val venueRepository: IVenueRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MapsViewModel::class.java)) {
-            return MapsViewModel(
-                LocationRepository(fusedLocationProviderClient),
-                VenueRepository(VenueService.create(), VenueDataSource())
-            ) as T
+            return MapsViewModel(locationRepository, venueRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

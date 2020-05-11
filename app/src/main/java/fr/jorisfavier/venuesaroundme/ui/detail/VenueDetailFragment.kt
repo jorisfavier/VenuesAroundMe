@@ -14,11 +14,14 @@ import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import fr.jorisfavier.venuesaroundme.R
 import fr.jorisfavier.venuesaroundme.api.model.VenueDetail
+import fr.jorisfavier.venuesaroundme.util.getServiceLocator
 import kotlinx.android.synthetic.main.venue_detail_fragment.*
 
 class VenueDetailFragment : Fragment() {
 
-    private val viewModel: VenueDetailViewModel by viewModels { VenueDetailViewModelFactory() }
+    private val viewModel: VenueDetailViewModel by viewModels {
+        VenueDetailViewModelFactory(getServiceLocator().venueRepository)
+    }
 
     private val args: VenueDetailFragmentArgs by navArgs()
 
