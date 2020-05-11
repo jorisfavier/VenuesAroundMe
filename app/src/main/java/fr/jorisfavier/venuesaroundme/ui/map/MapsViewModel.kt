@@ -43,7 +43,11 @@ class MapsViewModel(
         _state.value = Event(State.SearchError)
     }
 
-
+    /**
+     * Indicates if the fine location permission has been granted by the user or not
+     *
+     * @param granted
+     */
     fun setFineLocationGranted(granted: Boolean) {
         if (_state.value?.peekContent() !is State.Ready) {
             if (!granted) {
@@ -61,6 +65,13 @@ class MapsViewModel(
         }
     }
 
+    /**
+     * Search restaurants around a given location within the given radius
+     * Uses the restaurants liveData to set the results
+     *
+     * @param location Latitude and longitude where to search for restaurants
+     * @param radius Limit results to restaurants within this many meters of the specified location
+     */
     fun searchNearByRestaurants(location: LatLng, radius: Double) {
         viewModelScope.launch(searchExceptionHandler) {
             venueRepository.getRestaurantsAroundLocation(location, radius).collect {

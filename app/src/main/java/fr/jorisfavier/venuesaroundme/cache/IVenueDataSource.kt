@@ -5,7 +5,7 @@ import fr.jorisfavier.venuesaroundme.api.model.Venue
 
 interface IVenueDataSource {
     /**
-     * Search for persisted venues which are in the given radius to the given position
+     * Search for persisted venues which are in the given radius of the given position
      *
      * @param location
      * @param radius

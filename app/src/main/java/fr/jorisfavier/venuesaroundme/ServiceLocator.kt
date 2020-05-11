@@ -15,7 +15,7 @@ interface IServiceLocator {
     val venueRepository: IVenueRepository
 }
 
-class ServiceLocator(val appContext: Context) : IServiceLocator {
+class ServiceLocator(private val appContext: Context) : IServiceLocator {
 
     override val locationRepository: ILocationRepository by lazy {
         LocationRepository(
